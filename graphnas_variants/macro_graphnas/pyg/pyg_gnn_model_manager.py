@@ -7,9 +7,9 @@ import torch.nn.functional as F
 import torch_geometric.transforms as T
 from torch_geometric.datasets import Planetoid, Coauthor, Amazon
 
-from models.macro_nas.dgl.gnn_model_manager import CitationGNNManager, evaluate
-from models.macro_nas.pyg.pyg_gnn import GraphNet
-from models.utils.label_split import fix_size_split
+from graphnas.gnn_model_manager import CitationGNNManager, evaluate
+from graphnas_variants.macro_graphnas.pyg.pyg_gnn import GraphNet
+from graphnas.utils.label_split import fix_size_split
 
 
 def load_data(dataset="Cora", supervised=False, full_data=True):

@@ -4,10 +4,10 @@ import argparse
 
 import torch
 
-import models.simple_nas.simple_trainer as trainer
-import utils
+import graphnas_variants.simple_graphnas.simple_trainer as trainer
+from graphnas import utils
 
-from models.common.common_main import register_default_args
+from graphnas.main import register_default_args
 
 
 def build_args():
