@@ -16,6 +16,7 @@ class GraphNet(BaseNet):
                                        state_num)
 
     def build_model(self, actions, batch_normal, drop_out, num_feat, num_label, state_num):
+        print('start build model')
         if self.residual:
             self.fcs = torch.nn.ModuleList()
         if self.batch_normal:
@@ -23,10 +24,11 @@ class GraphNet(BaseNet):
         self.layers = torch.nn.ModuleList()
         self.acts = []
         self.gates = torch.nn.ModuleList()
+        print('before build_hidden_layers')
         self.build_hidden_layers(actions, batch_normal, drop_out, self.layer_nums, num_feat, num_label, state_num)
 
     def build_hidden_layers(self, actions, batch_normal, drop_out, layer_nums, num_feat, num_label, state_num=6):
-
+        print('in build_hidden_layers')
         # build hidden layer
         for i in range(layer_nums):
 
@@ -42,6 +44,13 @@ class GraphNet(BaseNet):
             head_num = actions[i * state_num + 3]
             out_channels = actions[i * state_num + 4]
             concat = True
+            print('em build_hidden_layers:::')
+            print('attention_type:  ', attention_type)
+            print('aggregator_type:  ', aggregator_type)
+            print('act:  ', act)
+            print('head_num:  ', head_num)
+            print('out_channels:  ', out_channels)
+            print('concat: ', concat)
             if i == layer_nums - 1:
                 concat = False
             if self.batch_normal:
@@ -55,8 +64,13 @@ class GraphNet(BaseNet):
                     self.fcs.append(torch.nn.Linear(in_channels, out_channels * head_num))
                 else:
                     self.fcs.append(torch.nn.Linear(in_channels, out_channels))
+        print('acts: ', self.acts)
+        print('layers: ', self.layers)
+        if self.residual:
+            print('fcs: ', self.fcs)
 
     def forward(self, x, edge_index_all):
+        # print('entrou na forward do macro_graphnas pyg_gnn')
         output = x
         if self.residual:
             for i, (act, layer, fc) in enumerate(zip(self.acts, self.layers, self.fcs)):

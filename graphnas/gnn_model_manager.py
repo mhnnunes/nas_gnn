@@ -23,6 +23,8 @@ def load(args, save_file=".npy"):
 
 def evaluate(output, labels, mask):
     _, indices = torch.max(output, dim=1)
+    # print('indices dim: ', indices.dim())
+    # print('labels dim: ', labels.dim())
     correct = torch.sum(indices[mask] == labels[mask])
     return correct.item() * 1.0 / mask.sum().item()
 
@@ -41,14 +43,14 @@ class CitationGNNManager(object):
 
         self.early_stop_manager = EarlyStop(10)
         self.reward_manager = TopAverage(10)
-
+        print('args on CitationGNNManager:', args)
         self.args = args
         self.drop_out = args.in_drop
         self.multi_label = args.multi_label
         self.lr = args.lr
         self.weight_decay = args.weight_decay
         self.retrain_epochs = args.retrain_epochs
-        self.loss_fn = torch.nn.BCELoss()
+        self.loss_fn = torch.nn.BCELoss() # binary cross entropy loss
         self.epochs = args.epochs
         self.train_graph_index = 0
         self.train_set_length = 10
@@ -108,7 +110,9 @@ class CitationGNNManager(object):
             # use optimizer
             optimizer = torch.optim.Adam(model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
             model, val_acc = self.run_model(model, optimizer, self.loss_fn, self.data, self.epochs, cuda=self.args.cuda,
-                                            half_stop_score=max(self.reward_manager.get_top_average() * 0.7, 0.4))
+                                            half_stop_score=max(self.reward_manager.get_top_average() * 0.7, 0.4)
+                                            # , show_info=True
+                                            )
         except RuntimeError as e:
             if "cuda" in str(e) or "CUDA" in str(e):
                 print(e)
@@ -126,10 +130,8 @@ class CitationGNNManager(object):
         with open(self.args.dataset + "_" + self.args.search_mode + self.args.submanager_log_file, "a") as file:
             # with open(f'{self.args.dataset}_{self.args.search_mode}_{self.args.format}_manager_result.txt', "a") as file:
             file.write(str(origin_action))
-
-            file.write(";")
-            file.write(str(reward))
-
+            # file.write(";")
+            # file.write(str(reward))
             file.write(";")
             file.write(str(val_acc))
             file.write("\n")
@@ -149,6 +151,7 @@ class CitationGNNManager(object):
     def run_model(model, optimizer, loss_fn, data, epochs, early_stop=5, tmp_model_file="geo_citation.pkl",
                   half_stop_score=0, return_best=False, cuda=True, need_early_stop=False, show_info=False):
 
+        print('chamou o run_model da CitationGNNManager')
         dur = []
         begin_time = time.time()
         best_performance = 0
@@ -266,11 +269,17 @@ class CitationGNNManager(object):
     @staticmethod
     def prepare_data(data, cuda=True):
         features = torch.FloatTensor(data.features)
+        print('features: ', features)
         labels = torch.LongTensor(data.labels)
+        print('labels: ', labels)
         mask = torch.ByteTensor(data.train_mask)
+        print('mask: ', mask)
         test_mask = torch.ByteTensor(data.test_mask)
+        print('test_mask: ', test_mask)
         val_mask = torch.ByteTensor(data.val_mask)
+        print('val_mask: ', val_mask)
         n_edges = data.graph.number_of_edges()
+        print('n_edges: ', n_edges)
         # create DGL graph
         g = DGLGraph(data.graph)
         # add self loop

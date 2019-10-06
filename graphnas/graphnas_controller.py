@@ -10,6 +10,7 @@ class SimpleNASController(torch.nn.Module):
         structure_list = []
         for single_action in actions:
             structure = []
+            print('single_action: ', single_action)
             for action, action_name in zip(single_action, self.action_list):
                 predicted_actions = self.search_space[action_name][action]
                 structure.append(predicted_actions)
@@ -153,6 +154,8 @@ class SimpleNASController(torch.nn.Module):
             actions.append(action[:, 0])
 
         actions = torch.stack(actions).transpose(0, 1)
+        print('sampled actions::')
+        print(actions)
         dags = self._construct_action(actions)
 
         if with_details:

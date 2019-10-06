@@ -42,6 +42,7 @@ def load_data(dataset="Cora", supervised=False, full_data=True):
             data.val_mask[data.num_nodes - 1000: data.num_nodes - 500] = 1
             data.test_mask = torch.zeros(data.num_nodes, dtype=torch.uint8)
             data.test_mask[data.num_nodes - 500:] = 1
+    print('loaded data: ', data)
     return data
 
 
@@ -52,12 +53,15 @@ class GeoCitationManager(CitationGNNManager):
             self.data = load_data(args.dataset, args.supervised)
         else:
             self.data = load_data(args.dataset)
+        print("on GeoCitationManager, data: ", self.data)
         self.args.in_feats = self.in_feats = self.data.num_features
         self.args.num_class = self.n_classes = self.data.y.max().item() + 1
+        print('in_feats: ', self.in_feats, '  n_classes: ', self.n_classes)
         device = torch.device('cuda' if args.cuda else 'cpu')
         self.data.to(device)
 
     def build_gnn(self, actions):
+        # CHAMA ESSE
         model = GraphNet(actions, self.in_feats, self.n_classes, drop_out=self.args.in_drop, multi_label=False,
                          batch_normal=False, residual=False)
         return model
@@ -80,13 +84,14 @@ class GeoCitationManager(CitationGNNManager):
     def run_model(model, optimizer, loss_fn, data, epochs, early_stop=5, tmp_model_file="geo_citation.pkl",
                   half_stop_score=0, return_best=False, cuda=True, need_early_stop=False, show_info=False):
 
+        # print('chamou o run_model da GeoCitationManager')
         dur = []
         begin_time = time.time()
         best_performance = 0
         min_val_loss = float("inf")
         min_train_loss = float("inf")
         model_val_acc = 0
-        print("Number of train datas:", data.train_mask.sum())
+        # print("Number of train datas:", data.train_mask.sum())
         for epoch in range(1, epochs + 1):
             model.train()
             t0 = time.time()
@@ -107,6 +112,7 @@ class GeoCitationManager(CitationGNNManager):
             dur.append(time.time() - t0)
 
             val_acc = evaluate(logits, data.y, data.val_mask)
+            # print('on run_model, logits: ', logits)
             test_acc = evaluate(logits, data.y, data.test_mask)
 
             loss = loss_fn(logits[data.val_mask], data.y[data.val_mask])
@@ -124,7 +130,7 @@ class GeoCitationManager(CitationGNNManager):
 
                 end_time = time.time()
                 print("Each Epoch Cost Time: %f " % ((end_time - begin_time) / epoch))
-        print(f"val_score:{model_val_acc},test_score:{best_performance}")
+        # print(f"val_score:{model_val_acc},test_score:{best_performance}")
         if return_best:
             return model, model_val_acc, best_performance
         else:
