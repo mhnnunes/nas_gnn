@@ -213,6 +213,7 @@ def main(args):  # pylint:disable=redefined-outer-name
         print('child acc: ', child_acc)
         print(f"parent: {parent}, val_score:{max_sample_acc} | child: {child}, val_score:{child_acc}")
         accs.append(child_acc)
+        population.append(child)
         if cycles % args.eval_cycle == 0:
             derive_from_population(_construct_action(population,
                                                      action_list,
