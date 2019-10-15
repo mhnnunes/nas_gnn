@@ -174,6 +174,7 @@ def main(args):  # pylint:disable=redefined-outer-name
 
     # Initialize population with random architectures
     print("\n\n===== Evaluating initial random population =====")
+    start_initial_population_time = time.time()
     while len(population) < population_size:
         # print('adding individual #:', len(population))
         individual = generate_random_individual(search_space,
@@ -186,9 +187,13 @@ def main(args):  # pylint:disable=redefined-outer-name
         print(f"individual: {individual}, val_score:{ind_acc}")
         accs.append(ind_acc)
         population.append(individual)
+    end_initial_pop_time = time.time()
+    print("Time elapsed initializing population: " +
+          str(end_initial_pop_time - start_initial_population_time))
     print("===== Evaluating initial random population DONE ====")
 
     print("\n\n===== Evolution ====")
+    start_evolution_time = time.time()
     while cycles > 0:
         sample = []  # list with indexes to population individuals
         sample_accs = []  # accuracies of the sampled individuals
@@ -210,7 +215,7 @@ def main(args):  # pylint:disable=redefined-outer-name
                                                      action_list,
                                                      search_space)[0],
                                    format=args.format)
-        print('child acc: ', child_acc)
+        # print('child acc: ', child_acc)
         print(f"parent: {parent}, val_score:{max_sample_acc} | child: {child}, val_score:{child_acc}")
         accs.append(child_acc)
         population.append(child)
@@ -224,6 +229,11 @@ def main(args):  # pylint:disable=redefined-outer-name
         population.popleft()
         accs.popleft()
         cycles -= 1
+    end_evolution_time = time.time()
+    print('Time spend on evolution: ' +
+          str(end_evolution_time - start_evolution_time))
+    print('Total elapsed time: ' +
+          str(end_evolution_time - start_initial_population_time))
     print("===== Evolution DONE ====")
 
 
