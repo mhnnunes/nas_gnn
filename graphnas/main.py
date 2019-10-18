@@ -120,14 +120,14 @@ def get_best_individual_accuracy(accs):
     return max_acc_index, max_acc
 
 
-def derive_from_population(population, accs, submodel_manager):
+def derive_from_population(random_seed, population, accs, submodel_manager):
     best_score_index, best_score = get_best_individual_accuracy(accs)
     best_structure = population[best_score_index]
     print("[DERIVE] Best Structure:" + str(best_structure))
     # train from scratch to get the final score
-    np.random.seed(123)
-    torch.manual_seed(123)
-    torch.cuda.manual_seed_all(123)
+    np.random.seed(random_seed)
+    torch.manual_seed(random_seed)
+    torch.cuda.manual_seed_all(random_seed)
     test_scores_list = []
     for i in range(10):  # run 100 times to get Mean and Stddev
         # manager.shuffle_data()
@@ -220,7 +220,8 @@ def main(args):  # pylint:disable=redefined-outer-name
         accs.append(child_acc)
         population.append(child)
         if cycles % args.eval_cycle == 0:
-            derive_from_population(_construct_action(population,
+            derive_from_population(args.random_seed,
+                                   _construct_action(population,
                                                      action_list,
                                                      search_space),
                                    accs,
