@@ -5,11 +5,13 @@ import time
 import torch
 import argparse
 import numpy as np
+from sys import exit
 from collections import deque
 import graphnas.utils.tensor_utils as utils
 from graphnas.gnn_model_manager import CitationGNNManager
 from graphnas_variants.macro_graphnas.pyg.pyg_gnn_model_manager import GeoCitationManager
-
+from graphnas_variants.micro_graphnas.micro_search_space import IncrementSearchSpace
+from graphnas_variants.micro_graphnas.micro_model_manager import MicroCitationManager
 # import removed from the middle of the code
 from graphnas.search_space import MacroSearchSpace
 from graphnas.graphnas_controller import SimpleNASController
@@ -149,14 +151,30 @@ def main(args):  # pylint:disable=redefined-outer-name
 
     utils.makedirs(args.dataset)
 
-    search_space_cls = MacroSearchSpace()
-    search_space = search_space_cls.get_search_space()
-    action_list = \
-        search_space_cls.generate_action_list(args.layers_of_child_model)
+    if args.search_mode == 'macro':
+        search_space_cls = MacroSearchSpace()
+        search_space = search_space_cls.get_search_space()
+        action_list = \
+            search_space_cls.generate_action_list(args.layers_of_child_model)
+    elif args.search_mode == 'micro':
+        args.format = "micro"
+        args.predict_hyper = True
+        args.num_of_cell = 2
+        search_space_cls = IncrementSearchSpace()
+        search_space = search_space_cls.get_search_space()
+        submodel_manager = MicroCitationManager(args)
+        search_space = search_space
+        action_list = \
+            search_space_cls.generate_action_list(cell=args.num_of_cell)
+    else:
+        print('ERROR: Unrecognized search mode: ', args.search_mode)
+        exit(-1)
+
     print("Search space:")
     print(search_space)
     print("Generated Action List: ")
     print(action_list)
+    exit(0)
     if args.dataset in ["cora", "citeseer", "pubmed"]:
         # implements based on dgl
         submodel_manager = CitationGNNManager(args)
