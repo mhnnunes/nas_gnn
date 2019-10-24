@@ -92,15 +92,14 @@ def _construct_action(actions, action_list, search_space):
     return structure_list
 
 
-def generate_random_individual(search_space, layers_of_child_model):
+def generate_random_individual(search_space, action_list):
     ind = []
-    for i in range(layers_of_child_model):
-        ind += [np.random.randint(0, len(space))
-                for key, space in search_space.items()]
+    for action in action_list:
+        ind.append(np.random.randint(0, len(search_space[action])))
     return ind
 
 
-def mutate_individual(indiv, layers_of_child_model, search_space, action_list):
+def mutate_individual(indiv, search_space, action_list):
     # Choose a random position on the individual to mutate
     position_to_mutate = np.random.randint(len(indiv))
     # This position will receive a randomly chosen index
@@ -138,6 +137,19 @@ def derive_from_population(random_seed, population, accs, submodel_manager):
     print(f"[DERIVE] Best Results: {best_structure}: {np.mean(test_scores_list):.8f} +/- {np.std(test_scores_list)}")
 
 
+def form_gnn_info(gnn, args):
+    if args.search_mode == "micro":
+        actual_action = {}
+        if args.predict_hyper:
+            actual_action["action"] = gnn[:-4]
+            actual_action["hyper_param"] = gnn[-4:]
+        else:
+            actual_action["action"] = gnn
+            actual_action["hyper_param"] = [0.005, 0.8, 5e-5, 128]
+        return actual_action
+    return gnn
+
+
 def main(args):  # pylint:disable=redefined-outer-name
 
     if args.cuda and not torch.cuda.is_available():  # cuda is not available
@@ -163,9 +175,11 @@ def main(args):  # pylint:disable=redefined-outer-name
         search_space_cls = IncrementSearchSpace()
         search_space = search_space_cls.get_search_space()
         submodel_manager = MicroCitationManager(args)
-        search_space = search_space
         action_list = \
             search_space_cls.generate_action_list(cell=args.num_of_cell)
+        if hasattr(args, "predict_hyper") and args.predict_hyper:
+                action_list = action_list + ["learning_rate", "dropout", "weight_decay", "hidden_unit"]
+        print('action list: ', action_list)
     else:
         print('ERROR: Unrecognized search mode: ', args.search_mode)
         exit(-1)
@@ -174,7 +188,7 @@ def main(args):  # pylint:disable=redefined-outer-name
     print(search_space)
     print("Generated Action List: ")
     print(action_list)
-    exit(0)
+    # exit(0)
     if args.dataset in ["cora", "citeseer", "pubmed"]:
         # implements based on dgl
         submodel_manager = CitationGNNManager(args)
@@ -196,11 +210,11 @@ def main(args):  # pylint:disable=redefined-outer-name
     while len(population) < population_size:
         # print('adding individual #:', len(population))
         individual = generate_random_individual(search_space,
-                                                args.layers_of_child_model)
+                                                action_list)
         _, ind_acc = \
-            submodel_manager.train(_construct_action([individual],
-                                                     action_list,
-                                                     search_space)[0],
+            submodel_manager.train(form_gnn_info(_construct_action([individual],
+                                                                   action_list,
+                                                                   search_space)[0], args),
                                    format=args.format)
         print(f"individual: {individual}, val_score:{ind_acc}")
         accs.append(ind_acc)
@@ -225,13 +239,12 @@ def main(args):  # pylint:disable=redefined-outer-name
             get_best_individual_accuracy(sample_accs)
         parent = sample[max_sample_acc_index]
         # print('parent: ', parent)
-        child = mutate_individual(parent, args.layers_of_child_model,
-                                  search_space, action_list)
+        child = mutate_individual(parent, search_space, action_list)
         # print('child: ', child)
         _, child_acc = \
-            submodel_manager.train(_construct_action([child],
-                                                     action_list,
-                                                     search_space)[0],
+            submodel_manager.train(form_gnn_info(_construct_action([child],
+                                                                   action_list,
+                                                                   search_space)[0], args),
                                    format=args.format)
         # print('child acc: ', child_acc)
         print(f"parent: {parent}, val_score:{max_sample_acc} | child: {child}, val_score:{child_acc}")
