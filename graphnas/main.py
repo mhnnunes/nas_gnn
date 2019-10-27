@@ -168,6 +168,12 @@ def main(args):  # pylint:disable=redefined-outer-name
         search_space = search_space_cls.get_search_space()
         action_list = \
             search_space_cls.generate_action_list(args.layers_of_child_model)
+        if args.dataset in ["cora", "citeseer", "pubmed"]:
+            # implements based on dgl
+            submodel_manager = CitationGNNManager(args)
+        if args.dataset in ["Cora", "Citeseer", "Pubmed"]:
+            # implements based on pyg
+            submodel_manager = GeoCitationManager(args)
     elif args.search_mode == 'micro':
         args.format = "micro"
         args.predict_hyper = True
@@ -189,12 +195,6 @@ def main(args):  # pylint:disable=redefined-outer-name
     print("Generated Action List: ")
     print(action_list)
     # exit(0)
-    if args.dataset in ["cora", "citeseer", "pubmed"]:
-        # implements based on dgl
-        submodel_manager = CitationGNNManager(args)
-    if args.dataset in ["Cora", "Citeseer", "Pubmed"]:
-        # implements based on pyg
-        submodel_manager = GeoCitationManager(args)
     # deque with individuals (indexes to search space on action list)
     population = deque()
     # deque with the accuracies for each of the individuals in order
