@@ -121,9 +121,9 @@ def get_best_individual_accuracy(accs):
     return max_acc_index, max_acc
 
 
-def derive_from_population(random_seed, population, accs, submodel_manager):
+def derive_from_population(random_seed, population, accs, submodel_manager, args):
     best_score_index, best_score = get_best_individual_accuracy(accs)
-    best_structure = population[best_score_index]
+    best_structure = form_gnn_info(population[best_score_index], args)
     print("[DERIVE] Best Structure:" + str(best_structure))
     # train from scratch to get the final score
     np.random.seed(random_seed)
@@ -256,7 +256,8 @@ def main(args):  # pylint:disable=redefined-outer-name
                                                      action_list,
                                                      search_space),
                                    accs,
-                                   submodel_manager)
+                                   submodel_manager,
+                                   args)
         # Remove oldest individual (Aging/Regularized evolution)
         population.popleft()
         accs.popleft()
