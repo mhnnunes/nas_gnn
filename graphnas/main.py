@@ -6,6 +6,7 @@ import torch
 import argparse
 import numpy as np
 from sys import exit
+from graphnas.rl_trainer import RL_Trainer
 import graphnas.utils.tensor_utils as utils
 from graphnas.evolution_trainer import Evolution_Trainer
 
@@ -19,6 +20,10 @@ def build_args():
 
 
 def register_default_args(parser):
+    parser.add_argument('--optimizer', type=str, default='EA',
+                        choices=['EA', 'RL'],
+                        help='EA: Evolutionary algorithm,\
+                              RL: Reinforcement Learning algorithm')
     parser.add_argument('--mode', type=str, default='train',
                         choices=['train', 'derive'],
                         help='train: Training GraphNAS,\
@@ -36,11 +41,29 @@ def register_default_args(parser):
     parser.add_argument('--sample_size', type=int, default=25,
                         help='Sample size for tournament selection')
     # controller
+    parser.add_argument('--save_epoch', type=int, default=2)
     parser.add_argument('--layers_of_child_model', type=int, default=2)
     parser.add_argument('--load_path', type=str, default='')
     parser.add_argument('--search_mode', type=str, default='macro')
     parser.add_argument('--format', type=str, default='two')
     parser.add_argument('--max_epoch', type=int, default=10)
+
+    parser.add_argument('--shared_initial_step', type=int, default=0)
+    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--entropy_mode', type=str, default='reward',
+                        choices=['reward', 'regularizer'])
+    parser.add_argument('--entropy_coeff', type=float, default=1e-4)
+    parser.add_argument('--shared_rnn_max_length', type=int, default=35)
+    parser.add_argument('--ema_baseline_decay', type=float, default=0.95)
+    parser.add_argument('--discount', type=float, default=1.0)
+    parser.add_argument('--controller_max_step', type=int, default=100,
+                        help='step for controller parameters')
+    parser.add_argument('--controller_optim', type=str, default='adam')
+    parser.add_argument('--controller_lr', type=float, default=3.5e-4,
+                        help="will be ignored if --controller_lr_cosine=True")
+    parser.add_argument('--controller_grad_clip', type=float, default=0)
+    parser.add_argument('--tanh_c', type=float, default=2.5)
+    parser.add_argument('--softmax_temperature', type=float, default=5.0)
 
     parser.add_argument('--derive_num_sample', type=int, default=100)
     parser.add_argument('--derive_finally', type=bool, default=True)
@@ -86,7 +109,13 @@ def main(args):  # pylint:disable=redefined-outer-name
 
     utils.makedirs(args.dataset)
 
-    trainer = Evolution_Trainer(args)
+    if args.optimizer == 'EA':
+        trainer = Evolution_Trainer(args)
+    elif args.optimizer == 'RL':
+        trainer = RL_Trainer(args)
+    else:
+        raise Exception("[!] Optimizer not found: ", args.optimizer)
+
     if args.mode == 'train':
         print(args)
         trainer.train()
@@ -99,3 +128,4 @@ def main(args):  # pylint:disable=redefined-outer-name
 if __name__ == "__main__":
     args = build_args()
     main(args)
+
