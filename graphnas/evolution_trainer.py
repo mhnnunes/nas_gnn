@@ -137,7 +137,7 @@ class Evolution_Trainer(Trainer):
             self.cycles -= 1
         end_evolution_time = time.time()
         total_evolution_time = end_evolution_time - start_evolution_time
-        print('Time spend on evolution: ' +
+        print('Time spent on evolution: ' +
               str(total_evolution_time))
         print('Total elapsed time: ' +
               str(total_evolution_time + self.init_time))
