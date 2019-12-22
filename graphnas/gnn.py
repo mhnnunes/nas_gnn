@@ -19,25 +19,15 @@ class GraphNet(torch.nn.Module):
         self.num_label = num_label
         self.dropout = drop_out
         self.residual = residual
-        print('on GraphNet init: ')
-        print('multi_label; ', multi_label)
-        print('num_feat; ', num_feat)
-        print('num_label; ', num_label)
-        print('drop_out; ', drop_out)
-        print('residual; ', residual)
         # check structure of GNN
         self.layer_nums = self.evalate_actions(actions, state_num)
-        print('building model:::')
         # layer module
         self.build_model(actions, batch_normal, drop_out, num_feat, num_label, state_num)
-        print('after build model', self.layers)
 
     def build_model(self, actions, batch_normal, drop_out, num_feat, num_label, state_num):
-        print('first line of build model')
         self.layers = torch.nn.ModuleList()
         self.gates = torch.nn.ModuleList()
         self.prediction = None
-        print('calling build hidden layer')
         # self.build_hidden_layers(actions, batch_normal, drop_out, self.layer_nums, num_feat, num_label, state_num)
 
     def evalate_actions(self, actions, state_num):
