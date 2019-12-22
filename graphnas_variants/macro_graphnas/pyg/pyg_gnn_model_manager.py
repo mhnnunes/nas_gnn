@@ -130,7 +130,7 @@ class GeoCitationManager(CitationGNNManager):
 
                 end_time = time.time()
                 print("Each Epoch Cost Time: %f " % ((end_time - begin_time) / epoch))
-        # print(f"val_score:{model_val_acc},test_score:{best_performance}")
+        print(f"val_score:{model_val_acc},test_score:{best_performance}")
         if return_best:
             return model, model_val_acc, best_performance
         else:
