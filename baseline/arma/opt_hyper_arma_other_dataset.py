@@ -31,17 +31,17 @@ def load_data(dataset="Cora", supervised=True, ):
     data = dataset[0]
     if supervised:
 
-        data.train_mask = torch.zeros(data.num_nodes, dtype=torch.uint8)
+        data.train_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
         data.train_mask[:-1000] = 1
-        data.val_mask = torch.zeros(data.num_nodes, dtype=torch.uint8)
+        data.val_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
         data.val_mask[-1000: -500] = 1
-        data.test_mask = torch.zeros(data.num_nodes, dtype=torch.uint8)
+        data.test_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
         data.test_mask[-500:] = 1
     data.num_classes = data.y.max().item() + 1
     return dataset
 
 def index_to_mask(index, size):
-    mask = torch.zeros(size, dtype=torch.uint8, device=index.device)
+    mask = torch.zeros(size, dtype=torch.bool, device=index.device)
     mask[index] = 1
     return mask
 def label_splits(data, num_classes, shuffle=False):
@@ -54,11 +54,11 @@ def label_splits(data, num_classes, shuffle=False):
 
         return data
     else:
-        data.train_mask = torch.zeros(data.num_nodes, dtype=torch.uint8)
+        data.train_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
         data.train_mask[:-1000] = 1
-        data.val_mask = torch.zeros(data.num_nodes, dtype=torch.uint8)
+        data.val_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
         data.val_mask[-1000: -500] = 1
-        data.test_mask = torch.zeros(data.num_nodes, dtype=torch.uint8)
+        data.test_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
         data.test_mask[-500:] = 1
 
         return data

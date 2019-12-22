@@ -58,7 +58,7 @@ def fix_size_split(data, train_num=1000, val_num=500, test_num=500):
 
 
 def index_to_mask(index, size):
-    mask = torch.zeros(size, dtype=torch.uint8, device=index.device)
+    mask = torch.zeros(size, dtype=torch.bool, device=index.device)
     mask[index] = 1
     return mask
 

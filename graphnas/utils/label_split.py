@@ -30,7 +30,7 @@ def get_degree(edge_index, num_nodes):
 
 
 def index_to_mask(index, size):
-    mask = torch.zeros(size, dtype=torch.uint8, device=index.device)
+    mask = torch.zeros(size, dtype=torch.bool, device=index.device)
     mask[index] = 1
     return mask
 
@@ -68,7 +68,7 @@ def nas_labels_splits(data, num_classes, required_labels=20):
     indices = []
     visible_data_length = len(data.y) - 1000
 
-    data.test_mask = torch.zeros(data.num_nodes, dtype=torch.uint8)
+    data.test_mask = torch.zeros(data.num_nodes, dtype=torch.bool)
     data.test_mask[data.num_nodes - 1000:] = 1
 
     for i in range(num_classes):
