@@ -118,7 +118,8 @@ class Evolution_Trainer(Trainer):
                 self._get_best_individual_accuracy(sample_accs)
             parent = sample[max_sample_acc_index]
             # print('parent: ', parent)
-            child = self._mutate_individual(parent)
+            child = parent.copy()
+            child = self._mutate_individual(child)
             # print('child: ', child)
             child_actions = self._construct_action([child])
             gnn = self.form_gnn_info(child_actions[0])
@@ -134,6 +135,10 @@ class Evolution_Trainer(Trainer):
             # Remove oldest individual (Aging/Regularized evolution)
             self.population.popleft()
             self.accuracies.popleft()
+            print("[POPULATION STATS] Mean/Median/Best: ",
+                  np.mean(self.accuracies),
+                  np.median(self.accuracies),
+                  np.max(self.accuracies))
             self.cycles -= 1
         end_evolution_time = time.time()
         total_evolution_time = end_evolution_time - start_evolution_time
