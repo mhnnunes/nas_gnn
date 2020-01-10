@@ -13,8 +13,8 @@ rm ${DIR}/parent_temp ${DIR}/child_temp
 
 cat ${DIR}/results_evolution_${DATABASE} | grep -E '(time|Time)' > ${DIR}/time_${DATABASE}
 
-START_INITIAL=`grep -n initial\ random\ population\ =  results/seed_123/results_evolution_citeseer | cut -d':' -f 1`
-END_INITIAL=`grep -n initial\ random\ population\ D  results/seed_123/results_evolution_citeseer | cut -d':' -f 1`
+START_INITIAL=`grep -n initial\ random\ population\ =  ${DIR}/results_evolution_citeseer | cut -d':' -f 1`
+END_INITIAL=`grep -n initial\ random\ population\ D  ${DIR}/results_evolution_citeseer | cut -d':' -f 1`
 DIFF=`echo  $END_INITIAL - $START_INITIAL  + 1 | bc`
 head -n ${END_INITIAL} ${DIR}/results_evolution_${DATABASE} | tail -n ${DIFF} | grep val_score | cut -d':' -f3 > ${DIR}/initial_population_${DATABASE}
 
