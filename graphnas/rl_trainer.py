@@ -70,7 +70,6 @@ class RL_Trainer(Trainer):
 
         self.max_length = self.args.shared_rnn_max_length
 
-
         controller_optimizer = _get_optimizer(self.args.controller_optim)
         self.controller_optim = \
             controller_optimizer(self.controller.parameters(),
@@ -84,7 +83,8 @@ class RL_Trainer(Trainer):
         self.with_retrain = True
         self.args.shared_initial_step = 0
         super(RL_Trainer, self).build_model()
-        self.controller = SimpleNASController(self.args, action_list=self.action_list,
+        self.controller = SimpleNASController(self.args,
+                                              action_list=self.action_list,
                                               search_space=self.search_space,
                                               cuda=self.args.cuda)
         if self.cuda:
@@ -121,7 +121,8 @@ class RL_Trainer(Trainer):
             if self.epoch % self.args.save_epoch == 0:
                 self.save_model()
             end_epoch_time = time.time()
-            print("epoch ", str(self.epoch), " took: ", str(end_epoch_time - start_epoch_time))
+            print("epoch ", str(self.epoch), " took: ", str(end_epoch_time -
+                                                            start_epoch_time))
 
         if self.args.derive_finally:
             best_actions = self.derive()
@@ -144,7 +145,9 @@ class RL_Trainer(Trainer):
         for gnn in gnn_list:
             gnn = self.form_gnn_info(gnn)
             try:
-                _, val_score = self.submodel_manager.train(gnn, format=self.args.format)
+                _, val_score = \
+                    self.submodel_manager.train(gnn,
+                                                format=self.args.format)
                 logger.info(f"{gnn}, val_score:{val_score}")
             except RuntimeError as e:
                 if 'CUDA' in str(e):  # usually CUDA Out of Memory
@@ -170,8 +173,10 @@ class RL_Trainer(Trainer):
         reward_list = []
         for gnn in gnn_list:
             gnn = self.form_gnn_info(gnn)
-            reward = self.submodel_manager.test_with_param(gnn, format=self.args.format,
-                                                           with_retrain=self.with_retrain)
+            reward = \
+                self.submodel_manager.test_with_param(gnn,
+                                                      format=self.args.format,
+                                                      with_retrain=self.with_retrain)
 
             if reward is None:  # cuda error hanppened
                 reward = 0
@@ -216,7 +221,9 @@ class RL_Trainer(Trainer):
             if results:  # has reward
                 rewards, hidden = results
             else:
-                continue  # CUDA Error happens, drop structure and step into next iteration
+                # CUDA Error happens, drop structure
+                # and step into next iteration
+                continue
 
             # discount
             if 1 > self.args.discount > 0:
@@ -275,7 +282,8 @@ class RL_Trainer(Trainer):
         logger.info(f'eval | {gnn} | reward: {reward:8.2f} | scores: {scores:8.2f}')
 
     def derive_from_history(self):
-        with open(self.args.dataset + "_" + self.args.search_mode + self.args.submanager_log_file, "r") as f:
+        with open(self.args.dataset + "_" + self.args.search_mode +
+                  self.args.submanager_log_file, "r") as f:
             lines = f.readlines()
 
         results = []
@@ -325,7 +333,8 @@ class RL_Trainer(Trainer):
             if sample_num is None:
                 sample_num = self.args.derive_num_sample
 
-            gnn_list, _, entropies = self.controller.sample(sample_num, with_details=True)
+            gnn_list, _, entropies = \
+                self.controller.sample(sample_num, with_details=True)
 
             max_R = 0
             best_actions = None
@@ -411,5 +420,3 @@ class RL_Trainer(Trainer):
         self.controller_optim.load_state_dict(
             torch.load(self.controller_optimizer_path))
         logger.info(f'[*] LOADED: {self.controller_path}')
-
-
