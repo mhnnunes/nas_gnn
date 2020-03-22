@@ -8,6 +8,7 @@ import numpy as np
 from sys import exit
 from graphnas.rl_trainer import RL_Trainer
 import graphnas.utils.tensor_utils as utils
+from graphnas.rs_trainer import RandomSearch_Trainer
 from graphnas.evolution_trainer import Evolution_Trainer
 
 
@@ -21,9 +22,10 @@ def build_args():
 
 def register_default_args(parser):
     parser.add_argument('--optimizer', type=str, default='EA',
-                        choices=['EA', 'RL'],
+                        choices=['EA', 'RL', 'RS'],
                         help='EA: Evolutionary algorithm,\
-                              RL: Reinforcement Learning algorithm')
+                              RL: Reinforcement Learning algorithm\
+                              RS: Random Search algorithm')
     parser.add_argument('--mode', type=str, default='train',
                         choices=['train', 'derive'],
                         help='train: Training GraphNAS,\
@@ -113,6 +115,8 @@ def main(args):  # pylint:disable=redefined-outer-name
         trainer = Evolution_Trainer(args)
     elif args.optimizer == 'RL':
         trainer = RL_Trainer(args)
+    elif args.optimizer == 'RS':
+        trainer = RandomSearch_Trainer(args)
     else:
         raise Exception("[!] Optimizer not found: ", args.optimizer)
 
@@ -128,4 +132,3 @@ def main(args):  # pylint:disable=redefined-outer-name
 if __name__ == "__main__":
     args = build_args()
     main(args)
-
