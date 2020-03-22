@@ -1,5 +1,6 @@
 
 import torch
+import numpy as np
 import scipy.signal
 
 from graphnas.gnn_model_manager import CitationGNNManager
@@ -26,6 +27,17 @@ class Trainer(object):
         """
         self.args = args
         self.build_model()  # build controller and sub-model
+
+    def _construct_action(self, actions):
+        structure_list = []
+        for single_action in actions:
+            structure = []
+            print('single_action: ', single_action)
+            for action, action_name in zip(single_action, self.action_list):
+                predicted_actions = self.search_space[action_name][action]
+                structure.append(predicted_actions)
+            structure_list.append(structure)
+        return structure_list
 
     def build_model(self):
         if self.args.search_mode == "macro":
@@ -63,6 +75,13 @@ class Trainer(object):
                                                   "hidden_unit"]
             else:
                 self.action_list = action_list
+
+    def _generate_random_individual(self):
+        ind = []
+        for action in self.action_list:
+            ind.append(np.random.randint(0,
+                                         len(self.search_space[action])))
+        return ind
 
     def form_gnn_info(self, gnn):
         if self.args.search_mode == "micro":
