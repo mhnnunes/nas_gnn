@@ -27,24 +27,6 @@ class Evolution_Trainer(Trainer):
         print('initializing population on evolution_trainer init, maybe not the best strategy')
         self.__initialize_population()
 
-    def _construct_action(self, actions):
-        structure_list = []
-        for single_action in actions:
-            structure = []
-            print('single_action: ', single_action)
-            for action, action_name in zip(single_action, self.action_list):
-                predicted_actions = self.search_space[action_name][action]
-                structure.append(predicted_actions)
-            structure_list.append(structure)
-        return structure_list
-
-    def _generate_random_individual(self):
-        ind = []
-        for action in self.action_list:
-            ind.append(np.random.randint(0,
-                                         len(self.search_space[action])))
-        return ind
-
     def derive_from_population(self):
         population = self._construct_action(self.population)
         best_score_index, _ = \
@@ -118,7 +100,8 @@ class Evolution_Trainer(Trainer):
                 self._get_best_individual_accuracy(sample_accs)
             parent = sample[max_sample_acc_index]
             # print('parent: ', parent)
-            child = self._mutate_individual(parent)
+            child = parent.copy()
+            child = self._mutate_individual(child)
             # print('child: ', child)
             child_actions = self._construct_action([child])
             gnn = self.form_gnn_info(child_actions[0])
@@ -134,6 +117,10 @@ class Evolution_Trainer(Trainer):
             # Remove oldest individual (Aging/Regularized evolution)
             self.population.popleft()
             self.accuracies.popleft()
+            print("[POPULATION STATS] Mean/Median/Best: ",
+                  np.mean(self.accuracies),
+                  np.median(self.accuracies),
+                  np.max(self.accuracies))
             self.cycles -= 1
         end_evolution_time = time.time()
         total_evolution_time = end_evolution_time - start_evolution_time
