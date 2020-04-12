@@ -77,24 +77,136 @@ def load_RL_results(seed=123, database='', macro=True):
     df = pd.DataFrame()
     df['index'] = np.arange(len(val_scores))
     df['val_scores'] = np.array(val_scores)
-    return df, pd.DataFrame(np.array(times), columns=['times'])
+    rl_best_acc = pd.read_csv(os.path.join(results_path, 'seed_' + str(seed),
+                                           'best_acc_RL_' + database),
+                              names=['accuracy', 'error'])
+    return (df, pd.DataFrame(np.array(times), columns=['times']),
+            rl_best_acc)
 
 
-def draw_lineplots(ev_results, rl_results, all_seeds=False, macro=True):
+def load_RS_results(seed=123, database='', macro=True):
+    if macro:
+        results_path = paths['macro']
+    else:
+        results_path = paths['micro']
+    df = pd.read_csv(os.path.join(results_path, 'seed_' + str(seed),
+                                  'val_scores_RS_' + database),
+                     names=['val_scores'])
+    df['index'] = df.index
+    execution_time = open(os.path.join(results_path, 'seed_' + str(seed),
+                                       'time_RS_' + database)).read()
+    best_accuracy = open(os.path.join(results_path, 'seed_' + str(seed),
+                                      'best_acc_RS_' + database),
+                         'r').read()
+    return (df,
+            pd.DataFrame(np.array([float(execution_time)]),
+                         columns=['times']),
+            pd.DataFrame(np.array([float(best_accuracy)]),
+                         columns=['accuracy']))
+
+
+def load_all_results(database='', macro=True, ev_type=""):
+    # EV
+    ev_results_all = pd.DataFrame(columns=['index', 'variable',
+                                           'value', 'seed'])
+    pop_stats_all = pd.DataFrame(columns=['index', 'variable',
+                                          'value', 'seed'])
+    initial_pop_all = pd.DataFrame(columns=['scores', 'seed'])
+    # RL
+    rl_results_all = pd.DataFrame(columns=['index', 'val_scores', 'seed'])
+    rl_times_all = pd.DataFrame(columns=['times', 'seed'])
+    rl_best_acc_all = pd.DataFrame(columns=['accuracy', 'error',
+                                            'seed', 'dataset'])
+    # RS
+    rs_results_all = pd.DataFrame(columns=['index', 'val_scores', 'seed'])
+    rs_times_all = pd.DataFrame(columns=['times', 'seed'])
+    rs_best_acc_all = pd.DataFrame(columns=['accuracy', 'seed', 'dataset'])
+    ev_times_all = {}
+    if macro:
+        results_path = paths['macro']
+    else:
+        results_path = paths['micro']
+    for subdir in os.listdir(results_path):
+        if 'seed' in subdir:
+            seed = subdir.split('_')[-1]
+            # LOAD EVOLUTION RESULTS
+            ev_results, ev_times, initial_pop_scores, population_stats = \
+                load_evolution_results(seed=seed, database=database,
+                                       macro=macro, ev_type=ev_type)
+            ev_results['seed'] = seed
+            initial_pop_scores['seed'] = seed
+            population_stats['seed'] = seed
+            ev_results_all = pd.concat([ev_results_all, ev_results],
+                                       axis=0,
+                                       ignore_index=True, sort=False)
+            initial_pop_all = pd.concat([initial_pop_all, initial_pop_scores],
+                                        axis=0,
+                                        ignore_index=True, sort=False)
+            pop_stats_all = pd.concat([pop_stats_all, population_stats],
+                                      axis=0,
+                                      ignore_index=True, sort=False)
+            ev_times_all[seed] = ev_times
+            # LOAD RL RESULTS
+            rl_results, rl_times, rl_best_acc = \
+                load_RL_results(seed=seed, database=database, macro=macro)
+            rl_results['seed'] = seed
+            rl_results_all = pd.concat([rl_results_all, rl_results],
+                                       axis=0,
+                                       ignore_index=True, sort=False)
+            rl_times['seed'] = seed
+            rl_times_all = pd.concat([rl_times_all, rl_times],
+                                     axis=0,
+                                     ignore_index=True, sort=False)
+            rl_best_acc['seed'] = seed
+            rl_best_acc['dataset'] = database
+            rl_best_acc_all = pd.concat([rl_best_acc_all, rl_best_acc],
+                                        axis=0,
+                                        ignore_index=True,
+                                        sort=False)
+            # LOAD RS RESULTS
+            rs_results, rs_times, rs_best_acc = \
+                load_RS_results(seed=seed, database=database, macro=macro)
+            rs_results['seed'] = seed
+            rs_results_all = pd.concat([rs_results_all, rs_results],
+                                       axis=0,
+                                       ignore_index=True, sort=False)
+            rs_times['seed'] = seed
+            rs_times_all = pd.concat([rs_times_all, rs_times],
+                                     axis=0,
+                                     ignore_index=True, sort=False)
+            rs_best_acc['seed'] = seed
+            rs_best_acc['dataset'] = database
+            rs_best_acc_all = pd.concat([rs_best_acc_all, rs_best_acc],
+                                        axis=0,
+                                        ignore_index=True, sort=False)
+
+    return (ev_results_all, initial_pop_all, ev_times_all, pop_stats_all,
+            rl_results_all, rl_times_all, rl_best_acc_all,
+            rs_results_all, rs_times_all, rs_best_acc_all)
+
+
+def draw_lineplots(ev_results, rl_results, rs_results, all_seeds=False,
+                   macro=True):
     assert(len(ev_results.keys()) == len(rl_results.keys()))
+    assert(len(rs_results.keys()) == len(rl_results.keys()))
     nrows = len(ev_results.keys())
-    fig, ax = plt.subplots(nrows, 2, figsize=(18.75, nrows * 6), sharey=True)
+    fig, ax = plt.subplots(nrows, 3, figsize=(22.5, nrows * 6), sharey=True)
     for i, db in enumerate(ev_results.keys()):
         sns.lineplot(x='index', y='value', hue='variable',
                      data=ev_results[db], ax=ax[i][0])
         sns.lineplot(x='index', y='val_scores',
                      data=rl_results[db], ax=ax[i][1])
+        sns.lineplot(x='index', y='val_scores',
+                     data=rs_results[db], ax=ax[i][2])
         ax[i][0].set_title('Evolution: ' + db.capitalize())
         ax[i][1].set_title('Reinforcement Learning: ' + db.capitalize())
+        ax[i][2].set_title('Random Search: ' + db.capitalize())
         ax[i][0].set_xlabel('epoch')
         ax[i][1].set_xlabel('epoch')
+        ax[i][2].set_xlabel('epoch')
         ax[i][0].set_ylabel('Validation Score')
         ax[i][1].set_ylabel('Validation Score')
+        ax[i][2].set_ylabel('Validation Score')
     plt.tight_layout()
     if macro:
         results_path = paths['macro']
@@ -131,54 +243,6 @@ def draw_boxplots(ev_results_all, rl_results_all, all_seeds=False, macro=True):
     else:
         plt.savefig(os.path.join(results_path, 'plots',
                                  'validation_score_boxplot_all_seeds.pdf'))
-
-
-def load_all_results(database='', macro=True, ev_type=""):
-    ev_results_all = pd.DataFrame(columns=['index', 'variable',
-                                           'value', 'seed'])
-    pop_stats_all = pd.DataFrame(columns=['index', 'variable',
-                                          'value', 'seed'])
-    initial_pop_all = pd.DataFrame(columns=['scores', 'seed'])
-    rl_results_all = pd.DataFrame(columns=['index', 'val_scores', 'seed'])
-    rl_times_all = pd.DataFrame(columns=['times', 'seed'])
-    ev_times_all = {}
-    if macro:
-        results_path = paths['macro']
-    else:
-        results_path = paths['micro']
-    for subdir in os.listdir(results_path):
-        if 'seed' in subdir:
-            seed = subdir.split('_')[-1]
-            # LOAD EVOLUTION RESULTS
-            ev_results, ev_times, initial_pop_scores, population_stats = \
-                load_evolution_results(seed=seed, database=database,
-                                       macro=macro, ev_type=ev_type)
-            ev_results['seed'] = seed
-            initial_pop_scores['seed'] = seed
-            population_stats['seed'] = seed
-            ev_results_all = pd.concat([ev_results_all, ev_results],
-                                       axis=0,
-                                       ignore_index=True, sort=False)
-            initial_pop_all = pd.concat([initial_pop_all, initial_pop_scores],
-                                        axis=0,
-                                        ignore_index=True, sort=False)
-            pop_stats_all = pd.concat([pop_stats_all, population_stats],
-                                      axis=0,
-                                      ignore_index=True, sort=False)
-            ev_times_all[seed] = ev_times
-            # LOAD RL RESULTS
-            rl_results, rl_times = \
-                load_RL_results(seed=seed, database=database, macro=macro)
-            rl_results['seed'] = seed
-            rl_results_all = pd.concat([rl_results_all, rl_results],
-                                       axis=0,
-                                       ignore_index=True, sort=False)
-            rl_times['seed'] = seed
-            rl_times_all = pd.concat([rl_times_all, rl_times],
-                                     axis=0,
-                                     ignore_index=True, sort=False)
-    return ev_results_all, initial_pop_all, ev_times_all, \
-        rl_results_all, rl_times_all, pop_stats_all
 
 
 def draw_initial_pop_boxplot(initial_pop_all, macro=True):
@@ -219,14 +283,18 @@ def draw_population_stats_chart(pop_stats_all, macro=True):
     plt.savefig(os.path.join(results_path, 'plots', 'population_stats.pdf'))
 
 
-def draw_boxplot_time(rl_times_all, ev_times_all, macro=True):
+def draw_boxplot_time(rl_times_all, ev_times_all, rs_times_all, macro=True):
     assert(len(ev_times_all.keys()) == len(rl_times_all.keys()))
+    assert(len(rs_times_all.keys()) == len(rl_times_all.keys()))
     full_times = pd.DataFrame(columns=['dataset', 'seed',
                                        'variable', 'value'])
     for db in ev_times_all.keys():
         # Fix RL times on DF
         full_times_db = rl_times_all[db].groupby('seed').sum()
         full_times_db = full_times_db.rename(columns={'times': 'RL'})
+        # Fix RS times
+        rs_times_all[db] = rs_times_all[db].groupby('seed').sum()
+        full_times_db['RS'] = rs_times_all[db]['times']
         # Fix evolution times on DF
         ev_times = []
         for seed, times in sorted(ev_times_all[db].items()):
@@ -249,3 +317,50 @@ def draw_boxplot_time(rl_times_all, ev_times_all, macro=True):
         results_path = paths['micro']
     plt.savefig(os.path.join(results_path, 'plots', 'execution_time.pdf'))
 
+
+def draw_best_acc_boxplot(rl_best_acc, rs_best_acc, pop_stats_all, macro=True):
+    assert(len(rl_best_acc.keys()) == len(rs_best_acc.keys()))
+    assert(len(rs_best_acc.keys()) == len(pop_stats_all.keys()))
+    full_best_acc = pd.DataFrame(columns=['dataset', 'seed',
+                                          'variable', 'value'])
+    for db in rl_best_acc.keys():
+        # Fix RL ACC on DF
+        full_best_acc_db = rl_best_acc[db].drop(columns=['error'])
+        full_best_acc_db = full_best_acc_db.rename(columns={'accuracy': 'RL'})
+        # Fix RS ACC
+        # rs_best_acc_all[db] = rs_best_acc_all[db].drop(columns=['error'])
+        rs_best_acc[db] = rs_best_acc[db].rename(columns={'accuracy':
+                                                          'RS'})
+        # Fix Ev ACC
+        grouped_by_seed = \
+            pop_stats_all[db][pop_stats_all[db]['variable'] ==
+                              'Best'].groupby('seed').max()
+        grouped_by_seed = grouped_by_seed.drop(columns=['index',
+                                                        'variable'])
+        grouped_by_seed = grouped_by_seed.reset_index()
+        grouped_by_seed = grouped_by_seed.rename(columns={'value': 'EV'})
+        grouped_by_seed['dataset'] = db
+        grouped_by_seed = grouped_by_seed.merge(rs_best_acc[db],
+                                                on=['dataset',
+                                                    'seed'])
+        # Merge!
+        full_best_acc_db = full_best_acc_db.merge(grouped_by_seed,
+                                                  on=['dataset',
+                                                      'seed'])
+        full_best_acc_db = pd.melt(full_best_acc_db,
+                                   id_vars=['dataset',
+                                            'seed'])
+        full_best_acc = pd.concat([full_best_acc, full_best_acc_db],
+                                  axis=0, ignore_index=True)
+    # Draw boxplot
+    fig, ax = plt.subplots(figsize=(15, 7.5))
+    sns.boxplot(x='dataset', y='value', hue='variable', data=full_best_acc)
+    ax.set_title('Best Accuracy Boxplot')
+    ax.set_xlabel('Seed')
+    ax.set_ylabel('Accuracy')
+    plt.tight_layout()
+    if macro:
+        results_path = paths['macro']
+    else:
+        results_path = paths['micro']
+    plt.savefig(os.path.join(results_path, 'plots', 'best_accuracy.pdf'))
