@@ -356,8 +356,9 @@ def draw_best_acc_boxplot(rl_best_acc, rs_best_acc, pop_stats_all, macro=True):
     fig, ax = plt.subplots(figsize=(15, 7.5))
     sns.boxplot(x='dataset', y='value', hue='variable', data=full_best_acc)
     ax.set_title('Best Accuracy Boxplot')
-    ax.set_xlabel('Seed')
+    ax.set_xlabel('Dataset')
     ax.set_ylabel('Accuracy')
+    ax.legend(title='Method')
     plt.tight_layout()
     if macro:
         results_path = paths['macro']
