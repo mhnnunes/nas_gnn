@@ -45,11 +45,8 @@ class Trainer(object):
             # (generate entire network description)
             search_space_cls = MacroSearchSpace()
             self.search_space = search_space_cls.get_search_space()
-            self.action_list = search_space_cls.generate_action_list(self.args.layers_of_child_model)
-            print("Search space:")
-            print(self.search_space)
-            print("Generated Action List: ")
-            print(self.action_list)
+            self.action_list = search_space_cls.generate_action_list(
+                self.args.layers_of_child_model)
             # build RNN controller
             if self.args.dataset in ["cora", "citeseer", "pubmed"]:
                 # implements based on dgl
@@ -67,7 +64,8 @@ class Trainer(object):
             search_space = search_space_cls.get_search_space()
             self.submodel_manager = MicroCitationManager(self.args)
             self.search_space = search_space
-            action_list = search_space_cls.generate_action_list(cell=self.args.num_of_cell)
+            action_list = search_space_cls.generate_action_list(
+                cell=self.args.num_of_cell)
             if hasattr(self.args, "predict_hyper") and self.args.predict_hyper:
                 self.action_list = action_list + ["learning_rate",
                                                   "dropout",
@@ -75,6 +73,10 @@ class Trainer(object):
                                                   "hidden_unit"]
             else:
                 self.action_list = action_list
+        print("Search space:")
+        print(self.search_space)
+        print("Generated Action List: ")
+        print(self.action_list)
 
     def _generate_random_individual(self):
         ind = []

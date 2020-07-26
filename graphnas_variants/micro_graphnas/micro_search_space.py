@@ -47,7 +47,6 @@ def act_map(act):
 
 def gnn_map(gnn_name, in_dim, out_dim, concat=False, bias=True) -> Module:
     '''
-
     :param gnn_name:
     :param in_dim:
     :param out_dim:
@@ -109,7 +108,6 @@ class ZeroConv(Module):
         super(ZeroConv, self).__init__()
         self.out_dim = out_channels
 
-
     def forward(self, x, edge_index, edge_weight=None):
         return torch.zeros([x.size(0), self.out_dim]).to(x.device)
 
@@ -126,11 +124,18 @@ class SearchSpace(object):
             self.search_space = {}
             self.search_space["act"] = act_list  # activate function
             self.search_space["gnn"] = gnn_list  # gnn type
-            self.search_space["self_index"] = [0, 1]  # 0 means history, 1 means current, each layer contains two input
-            self.search_space["concat_type"] = ["add", "product", "concat"]  # same as self_index,
+            # 0 means history, 1 means current,
+            # each layer contains two input
+            self.search_space["self_index"] = [0, 1]
+            # same as self_index,
+            self.search_space["concat_type"] = ["add",
+                                                "product",
+                                                "concat"]
             self.search_space['learning_rate'] = [1e-2, 1e-3, 1e-4, 5e-3, 5e-4]
-            self.search_space['dropout'] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-            self.search_space['weight_decay'] = [0, 1e-3, 1e-4, 1e-5, 5e-5, 5e-4]
+            self.search_space['dropout'] = [0.0, 0.1, 0.2, 0.3, 0.4,
+                                            0.5, 0.6, 0.7, 0.8, 0.9]
+            self.search_space['weight_decay'] = [0, 1e-3, 1e-4,
+                                                 1e-5, 5e-5, 5e-4]
             self.search_space['hidden_unit'] = [8, 16, 32, 64, 128, 256, 512]
         pass
 
@@ -155,11 +160,18 @@ class IncrementSearchSpace(object):
             self.search_space["act"] = act_list  # activate function
             self.search_space["gnn"] = gnn_list  # gnn type
             for i in range(max_cell):
-                self.search_space[f"self_index_{i}"] = list(range(2+i))  # 0 means history, 1 means current, each layer contains two input
-            self.search_space["concat_type"] = ["add", "product", "concat"]  # same as self_index,
+                self.search_space[f"self_index_{i}"] = list(range(2 + i))
+                # 0 means history, 1 means current,
+                # each layer contains two input
+            self.search_space["concat_type"] = ["add",
+                                                "product",
+                                                "concat"]
+            # same as self_index,
             self.search_space['learning_rate'] = [1e-2, 1e-3, 1e-4, 5e-3, 5e-4]
-            self.search_space['dropout'] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-            self.search_space['weight_decay'] = [0, 1e-3, 1e-4, 1e-5, 5e-5, 5e-4]
+            self.search_space['dropout'] = [0.0, 0.1, 0.2, 0.3, 0.4,
+                                            0.5, 0.6, 0.7, 0.8, 0.9]
+            self.search_space['weight_decay'] = [0, 1e-3, 1e-4,
+                                                 1e-5, 5e-5, 5e-4]
             self.search_space['hidden_unit'] = [8, 16, 32, 64, 128, 256, 512]
         pass
 

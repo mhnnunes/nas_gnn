@@ -62,7 +62,8 @@ class GeoCitationManager(CitationGNNManager):
 
     def build_gnn(self, actions):
         # CHAMA ESSE
-        model = GraphNet(actions, self.in_feats, self.n_classes, drop_out=self.args.in_drop, multi_label=False,
+        model = GraphNet(actions, self.in_feats, self.n_classes,
+                         drop_out=self.args.in_drop, multi_label=False,
                          batch_normal=False, residual=False)
         return model
 
@@ -75,7 +76,8 @@ class GeoCitationManager(CitationGNNManager):
     def shuffle_data(self, full_data=True):
         device = torch.device('cuda' if self.args.cuda else 'cpu')
         if full_data:
-            self.data = fix_size_split(self.data, self.data.num_nodes - 1000, 500, 500)
+            self.data = fix_size_split(self.data,
+                                       self.data.num_nodes - 1000, 500, 500)
         else:
             self.data = fix_size_split(self.data, 1000, 500, 500)
         self.data.to(device)
