@@ -4,19 +4,7 @@ DATASET=$1
 DIR=$2
 TYPE=$3
 
-if [[ $TYPE == ""  ]]; then
-  cat ${DIR}/results_evolution_${DATASET} | grep parent | cut -d '|' -f1 | cut -d':' -f2,3 | sed -e "s/^\ *//g" | sed -e "s/\ *val_score:\ */>/g"  > ${DIR}/parent_temp
-  cat ${DIR}/results_evolution_${DATASET} | grep parent | cut -d '|' -f2 | cut -d':' -f2,3 | sed -e "s/^\ *//g" | sed -e "s/\ ,\ *val_score:\ */>/g" > ${DIR}/child_temp
-  paste ${DIR}/parent_temp ${DIR}/child_temp -d'>' > ${DIR}/parent_child_${DATASET}
-  rm ${DIR}/parent_temp ${DIR}/child_temp
-  cat ${DIR}/results_evolution_${DATASET} | grep -E '(time|Time)' > ${DIR}/time_${DATASET}
-  START_INITIAL=`grep -n initial\ random\ population\ =  ${DIR}/results_evolution_${DATASET} | cut -d':' -f 1`
-  END_INITIAL=`grep -n initial\ random\ population\ D  ${DIR}/results_evolution_${DATASET} | cut -d':' -f 1`
-  DIFF=`echo  $END_INITIAL - $START_INITIAL  + 1 | bc`
-  head -n ${END_INITIAL} ${DIR}/results_evolution_${DATASET} | tail -n ${DIFF} | grep val_score | cut -d':' -f3 > ${DIR}/initial_population_${DATASET}
-  echo "Mean,Median,Best" > ${DIR}/population_stats_${DATASET}
-  cat ${DIR}/results_evolution_${DATASET} | grep STATS | awk '{print $4,$5,$6}' | sed -e 's/\ /,/g' >> ${DIR}/population_stats_${DATASET}
-elif [[ $TYPE == "RL" ]]; then
+if [[ $TYPE == "RL" ]]; then
   if [[ `echo ${DIR} | grep micro | wc -l` -gt 0 ]]; then
     ACTIONS=`cat ${DIR}/results_${TYPE}_${DATASET}  | grep "best results" | cut -d':' -f 3,4 | sed -e "s/\],\ 'hyper_param':\ \[/,\ /g" | sed -e "s/^\ //g" | sed -e "s/\}//g"`
     ACC=`cat ${DIR}/results_${TYPE}_${DATASET}  | grep "best results" | cut -d':' -f5 | sed -e "s/^\ //g" | sed -e "s/\ +\/-\ />/g"`
@@ -44,3 +32,5 @@ else
   echo "Mean,Median,Best" > ${DIR}/population_stats_${DATASET}_${TYPE}
   cat ${DIR}/results_${TYPE}_${DATASET} | grep STATS | awk '{print $4,$5,$6}' | sed -e 's/\ /,/g' >> ${DIR}/population_stats_${DATASET}_${TYPE}
 fi
+CUDAOUT=`cat ${DIR}/results_${TYPE}_${DATASET} | grep "CUDA out" | wc -l`
+echo ${CUDAOUT} > ${DIR}/oom_${DATASET}_${TYPE}
