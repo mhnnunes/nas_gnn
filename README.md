@@ -6,6 +6,8 @@
 
 This repository is a fork of the original GraphNAS [repository](https://github.com/GraphNAS/GraphNAS). It holds the code for the Evolutionary Algorithm ([here](graphnas/evolution_trainer.py)) and Random Search ([here](graphnas/rs_trainer.py)) strategies, implemented for this paper.  
 
+A video presentation can be found [here](https://youtu.be/bxnzQHJ1eCs), and the slides can be found [here](BRACIS.pdf).
+
 #### Requirements  
 
 Recent versions of PyTorch, numpy, scipy, dgl, and torch_geometric are required.  
