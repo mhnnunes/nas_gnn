@@ -10,7 +10,7 @@ A video presentation can be found [here](https://youtu.be/bxnzQHJ1eCs), and the 
 
 #### Requirements  
 
-Recent versions of PyTorch, numpy, scipy, dgl, and torch_geometric are required.  
+Recent versions of `PyTorch`, `numpy`, `scipy`, `dgl`, and `torch_geometric` are required.  
 
 We have provided a utility script that installs the dependencies, considering the usage of CUDA 10.1. If this is not your CUDA version, follow the instructions on the script.  
 
@@ -30,7 +30,7 @@ We have made available a script for generating the experiment combinations used 
 ./generate_experiment_combinations.sh [ea|rs|rl]  
 ```  
 
-The parameter is the desired optimizer: one of {ea, rl, rs}.  
+The parameter is the desired optimizer: one of `{ea, rl, rs}`.  
 
 #### Results  
 
